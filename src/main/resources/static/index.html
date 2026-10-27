@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulador 2FA · TOTP / HOTP</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Autenticación de dos factores</h1>
+      <p class="sub">Simulador de token TOTP / HOTP sobre HMAC-SHA1 · Matemática Aplicada</p>
+    </div>
+    <div class="tabs" role="tablist">
+      <button id="tab-totp" class="tab active" role="tab" aria-selected="true">TOTP · por tiempo</button>
+      <button id="tab-hotp" class="tab" role="tab" aria-selected="false">HOTP · por contador</button>
+    </div>
+  </header>
+
+  <section class="card secret">
+    <h2>Secreto compartido K</h2>
+    <p class="hint">Lo conocen el token y el servidor. Se intercambia una sola vez, codificado en Base32.</p>
+    <div class="row">
+      <input id="secret" type="text" spellcheck="false" autocomplete="off" aria-label="Secreto en Base32">
+      <button id="btn-set">Aplicar</button>
+      <button id="btn-random" class="ghost">Generar aleatorio</button>
+      <button id="btn-rfc" class="ghost" title="ASCII 12345678901234567890, el de los vectores de prueba">Secreto de los RFC</button>
+    </div>
+    <p id="secret-msg" class="msg" role="status"></p>
+  </section>
+
+  <main>
+    <section class="card token">
+      <h2>Token <span class="role">rol cliente</span></h2>
+      <div class="phone">
+        <div class="account">cuenta@demo · <span id="mode-label">TOTP</span></div>
+        <div id="code" class="code" aria-live="polite">––– –––</div>
+
+        <div id="totp-box">
+          <div class="bar" aria-hidden="true"><div id="bar-fill"></div></div>
+          <div class="meta"><span>Vence en <b id="remaining">–</b> s</span><span>T = <b id="tstep">–</b></span></div>
+        </div>
+
+        <div id="hotp-box" hidden>
+          <button id="btn-next" class="big">Generar siguiente código</button>
+          <div class="meta"><span>Contador del token: <b id="tok-counter">0</b></span></div>
+        </div>
+        <button id="btn-copy" class="ghost small">Copiar al validador →</button>
+      </div>
+    </section>
+
+    <section class="card server">
+      <h2>Servidor <span class="role">rol verificador</span></h2>
+      <p class="hint" id="server-hint"></p>
+      <form id="verify-form" class="row" novalidate>
+        <input id="verify-code" type="text" inputmode="numeric" maxlength="6" placeholder="000000"
+               autocomplete="off" aria-label="Código a validar">
+        <button type="submit">Validar</button>
+      </form>
+      <div id="result" class="result" role="status" aria-live="polite"></div>
+      <div id="hotp-server" class="meta" hidden>
+        <span>Contador del servidor: <b id="srv-counter">0</b></span>
+        <button id="btn-reset" class="ghost small">Reiniciar contadores</button>
+      </div>
+    </section>
+  </main>
+
+  <section class="card steps">
+    <h2>Cálculo paso a paso <span class="role" id="steps-origin"></span></h2>
+    <ol>
+      <li>
+        <div class="st">Contador como 8 bytes big-endian</div>
+        <div class="formula" id="f-counter"></div>
+        <code id="s-counter"></code>
+      </li>
+      <li>
+        <div class="st">HS = HMAC-SHA1(K, C) → 20 bytes</div>
+        <div class="formula">El último nibble (resaltado) define el offset; los 4 bytes en esa posición se extraen.</div>
+        <code id="s-hmac" class="bytes"></code>
+      </li>
+      <li>
+        <div class="st">Truncamiento dinámico</div>
+        <div class="formula">offset = HS[19] AND 0x0F &nbsp;·&nbsp; P = HS[offset..offset+3] AND 0x7FFFFFFF</div>
+        <code id="s-trunc"></code>
+      </li>
+      <li>
+        <div class="st">Reducción modular</div>
+        <div class="formula">código = P mod 10<sup>6</sup></div>
+        <code id="s-mod"></code>
+      </li>
+    </ol>
+  </section>
+
+  <footer>RFC 4226 (HOTP) · RFC 6238 (TOTP) · Backend Java 17 + Spring Boot · corre en local</footer>
+  <script src="app.js"></script>
+</body>
+</html>
