@@ -59,9 +59,9 @@ public class OtpService {
             throw new IllegalArgumentException("Ingresá un secreto en Base32.");
         }
         byte[] k = Base32.decode(base32);
-        if (k.length < 10) {
+        if (k.length < 16) {
             throw new IllegalArgumentException(
-                    "El secreto es demasiado corto: se requieren al menos 80 bits (16 caracteres Base32).");
+                    "El secreto es demasiado corto: se requieren al menos 128 bits (16 bytes).");
         }
         setKey(k);
     }
