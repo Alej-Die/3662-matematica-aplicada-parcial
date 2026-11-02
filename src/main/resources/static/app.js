@@ -84,7 +84,6 @@ async function refreshTotp() {
     showCode(d.code);
     $('tstep').textContent = d.trace.counter;
     if (!stepsLocked) showTrace(d.trace, 'token · código vigente');
-    setSecretMsg('', '');
   } catch (e) { setSecretMsg(e.message, 'err'); }
 }
 
